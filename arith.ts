@@ -1,8 +1,8 @@
 import { parseArith } from "npm:tiny-ts-parser";
 
-export type Type = { tag: "Boolean" } | { tag: "Number" };
+type Type = { tag: "Boolean" } | { tag: "Number" };
 
-export type Term =
+type Term =
   | { tag: "true" }
   | { tag: "false" }
   | { tag: "if"; cond: Term; thn: Term; els: Term }
