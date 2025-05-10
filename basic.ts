@@ -68,6 +68,8 @@ function typecheck(t: Term, tyEnv: TypeEnv): Type {
       return tyEnv[t.name];
     }
     case "func": {
+      // console.log({ t, tyEnv });
+
       const newTyEnv = { ...tyEnv };
       for (const { name, type } of t.params) {
         newTyEnv[name] = type;
@@ -77,6 +79,8 @@ function typecheck(t: Term, tyEnv: TypeEnv): Type {
     }
 
     case "call": {
+      // console.log({ tyEnv });
+
       const funcTy = typecheck(t.func, tyEnv);
       if (funcTy.tag !== "Func") throw "function type expected";
       if (funcTy.params.length !== t.args.length) {
@@ -91,14 +95,32 @@ function typecheck(t: Term, tyEnv: TypeEnv): Type {
       return funcTy.retType;
     }
 
+    case "seq": {
+      typecheck(t.body, tyEnv);
+      return typecheck(t.rest, tyEnv);
+    }
+
+    case "const": {
+      const ty = typecheck(t.init, tyEnv);
+      const newTyEnv = { ...tyEnv, [t.name]: ty };
+      return typecheck(t.rest, newTyEnv);
+    }
+
     default:
       console.log({ t });
-      throw new Error(`not implemented - ${t}`);
+      throw new Error(`not implemented - ${t satisfies never}`);
   }
 }
 
 // const node = parseBasic("(f: (x: number) => number) => 2");
-// const node = parseBasic("(x: number, y: string) => y");
-const node = parseBasic("((x: number) => x)(1)");
+const node = parseBasic(`
+  const aaa = (x: number, y: number) => x + y;
+  const b = false;
+  aaa(1, aaa(1, 2))
+`);
+// const node = parseBasic("((x: number) => x)(1)");
+// const node = parseBasic("((x: number) => x)(1)");
+// const node = parseBasic("1()");
 // const node = parseBasic("1");
+// console.log({ node });
 console.log(typecheck(node, {}));
